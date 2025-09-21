@@ -26,7 +26,7 @@
   async function exploit() {
     let chars = "0123456789abcdef}";
     // ✅ 여기서 시작 접두사 값을 고치면 이어서 진행 가능
-    let secret = "DH{22d1445ad68";  
+    let secret = "DH{22d1445ad68e194e044a1";  
 
     while (!secret.includes("}")) {
       for (let c of chars) {
